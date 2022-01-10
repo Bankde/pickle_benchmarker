@@ -92,6 +92,7 @@ class Test(helper.PickleTest):
         lock.release()
         self.assertEqual(rlockGetState(lock), (False, 0, 0))
 
+    @helper.PickleTest.setFlag(helper.ResultCode.CONDITION, "Fail when using RLock")
     def test_condition(self):
         thisThread = threading.get_ident()
         cond = self.loads(self.obj['c'])
@@ -101,10 +102,10 @@ class Test(helper.PickleTest):
         t.start()
         time.sleep(1) # Wait for the thread to enter cond.wait()
         self.assertEqual(conditionGetState(cond), (False, 0, 0, 1))
-        cond.acquire() # The acquire blocks forever (even if we skip the above assertion)
+        cond.acquire()
         item_avail_list[0] = True
         cond.notify()
-        self.assertEqual(conditionGetState(cond), (True, thisThread, 1, 0))
+        self.assertEqual(conditionGetState(cond), (True, 0, 0, 0))
         cond.release()
         t.join()
         self.assertTrue(not item_avail_list[0])

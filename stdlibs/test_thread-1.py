@@ -110,7 +110,8 @@ class Test(helper.PickleTest):
         self.assertEqual(rlockGetState(lock), (False, 0, 0))
 
     def test_condition(self):
-        lock = threading.RLock()
+        # We do not use RLock because RLock will not work correctly after unpickle.
+        lock = threading.Lock()
         cond = threading.Condition(lock)
         thisThread = threading.get_ident()
         self.assertEqual(conditionGetState(cond), (False, 0, 0, 0))
@@ -123,7 +124,7 @@ class Test(helper.PickleTest):
         cond.acquire()
         item_avail_list[0] = True
         cond.notify()
-        self.assertEqual(conditionGetState(cond), (True, thisThread, 1, 0))
+        self.assertEqual(conditionGetState(cond), (True, 0, 0, 0))
         cond.release()
         t.join()
         self.assertTrue(not item_avail_list[0])

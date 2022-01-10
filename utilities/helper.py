@@ -52,6 +52,7 @@ class ResultCode(str, Enum):
     MEM     = "M"
     UNKNOWN = "?"
     UNK     = "?"
+    CONDITION = "C"
 class PickleTest(unittest.TestCase):
     MemSubtestStr = "MemSubtest"
 
@@ -77,6 +78,10 @@ class PickleTest(unittest.TestCase):
     def memTest(self, **kwargs):
         return super().subTest(msg=PickleTest.MemSubtestStr)
 
+    '''
+    This decorator will force the flag after all of the assertions are passed.
+    If one of the assertion is false, the result will still be Failed
+    '''
     @staticmethod
     def setFlag(flag, desc):
         def decorator(func):
@@ -100,6 +105,7 @@ class PickleTest(unittest.TestCase):
         E: Error (not picklable)
         F: Failure (Assertion fail)
         M: Mem related (Contained memory address constrain)
+        C: Pass with conditions (mostly from setFlag decorator)
         The result can only have 1 flag because the process stops when an error/failure occurs.
         '''
         code = None

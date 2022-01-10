@@ -78,6 +78,7 @@ class Test(helper.PickleTest):
         lock.release()
         self.assertEqual(rlockGetState(lock), (False, 0, 0))
 
+    @helper.PickleTest.setFlag(helper.ResultCode.CONDITION, "Fail when using RLock")
     def test_condition_running(self):
         thisThread = threading.get_ident()
         item_avail_list = [False]
