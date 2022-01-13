@@ -3,6 +3,7 @@
 
 import unittest
 import os, sys
+import time
 from enum import Enum
 
 if os.getenv("PickleLib"):
@@ -15,6 +16,13 @@ if pickle.__name__ == "dill":
 
 filename = ".data.tmp"
 result_file = "result.json"
+
+if "BENCHMARK" in os.environ:
+    BENCHMARK = True
+    BENCHMARK_COUNT = 10
+    BENCHMARK_LOOP = 100
+else:
+    BENCHMARK = False
 
 def savePickle(obj):
     # Prevent importing whole module as much as possible
@@ -61,19 +69,59 @@ class PickleTest(unittest.TestCase):
         TEST = 2
 
     # Wrapper of pickle dumps and loads
-    def dumps(self, *args, **kwargs):
-        try:
-            return pickle.dumps(*args, **kwargs)
-        except:
-            self.pickleError = True
-            raise
+    if BENCHMARK == False:
+        def dumps(self, *args, **kwargs):
+            try:
+                return pickle.dumps(*args, **kwargs)
+            except:
+                self.pickleError = True
+                raise
 
-    def loads(self, *args, **kwargs):
-        try:
-            return pickle.loads(*args, **kwargs)
-        except:
-            self.pickleError = True
-            raise
+        def loads(self, *args, **kwargs):
+            try:
+                return pickle.loads(*args, **kwargs)
+            except:
+                self.pickleError = True
+                raise
+    else:
+        def dumps(self, *args, **kwargs):
+            try:
+                time_stat = []
+                for i in range(BENCHMARK_COUNT+2):
+                    start = round(time.time()*1000)
+                    for j in range(BENCHMARK_LOOP):
+                        msg = pickle.dumps(*args, **kwargs)
+                    stop = round(time.time()*1000)
+                    time_stat.append(stop-start)
+                time_stat.sort()
+                avg_stat = sum(time_stat[1:-1])/(len(time_stat)-2) # Remove lowest and highest before avg'ing
+                # We decide to keep as array because there may be multiple pickle.dumps in a test
+                self.result[self._testMethodName].setdefault("time", []).append(avg_stat)
+                self.result[self._testMethodName].setdefault("size", []).append(len(msg))
+                return msg
+            except:
+                self.result[self._testMethodName].setdefault("time", []).append(-1)
+                self.result[self._testMethodName].setdefault("size", []).append(-1)
+                self.pickleError = True
+                raise
+
+        def loads(self, *args, **kwargs):
+            try:
+                time_stat = []
+                for i in range(BENCHMARK_COUNT+2):
+                    start = round(time.time()*1000)
+                    for j in range(BENCHMARK_LOOP):
+                        obj = pickle.loads(*args, **kwargs)
+                    stop = round(time.time()*1000)
+                    time_stat.append(stop-start)
+                time_stat.sort()
+                avg_stat = sum(time_stat[1:-1])/(len(time_stat)-2) # Remove lowest and highest before avg
+                self.result[self._testMethodName].setdefault("time", []).append(avg_stat)
+                return obj
+            except:
+                self.result[self._testMethodName].setdefault("time", []).append(-1)
+                self.pickleError = True
+                raise
 
     def memTest(self, **kwargs):
         return super().subTest(msg=PickleTest.MemSubtestStr)
@@ -164,12 +212,11 @@ class PickleTest(unittest.TestCase):
         cls.result = {}
 
     def setUp(self):
+        self.result[self._testMethodName] = {}
         # If the previous init fail, we can skip the test
         if self.shouldSkipTest():
-            self.result[self._testMethodName] = {
-                "result": ResultCode.ERROR,
-                "msg" : "Skip test (init fail)"
-            }
+            self.result[self._testMethodName]["result"] = ResultCode.ERROR
+            self.result[self._testMethodName]["msg"] = "Skip test (init fail)"
             self.skipTest("Skip test (init fail)")
             return
         # Clear previous data
@@ -185,10 +232,8 @@ class PickleTest(unittest.TestCase):
     def tearDown(self):
         # Save result for summary
         code, msg = self.generateResultCodeAndMsg()
-        self.result[self._testMethodName] = {
-            "result": code,
-            "msg" : msg
-        }
+        self.result[self._testMethodName]["result"] = code
+        self.result[self._testMethodName]["msg"] = msg
         # Save pickled data from obj to main_obj
         new_main_obj_key = "_func_" + self._testMethodName + "_"
         for key in self.obj.keys():
