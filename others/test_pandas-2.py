@@ -22,7 +22,6 @@ class Test(helper.PickleTest):
     
     def test_dataframe(self):
         df = self.loads(self.obj["df"])
-        self.obj["df"] = self.dumps(df)
         self.assertIsInstance(df, pd.core.frame.DataFrame)
         s = df["two"]
         self.assertIsInstance(s, pd.core.series.Series)
