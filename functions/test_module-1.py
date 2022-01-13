@@ -78,7 +78,37 @@ class Test(helper.PickleTest):
         import test_3_mod_2
         self.obj['m1'] = self.dumps(test_3_mod_2)
         self.assertIsInstance(test_3_mod_2, types.ModuleType)
-        self.assertEqual(str(test_3_mod_2.CustomClass(9)), "81")
+        o = test_3_mod_2.CustomClass(9)
+        self.assertEqual(str(o), "81")
+        o.add(2)
+        self.assertEqual(str(o), "83")
+
+    @unittest.skipIf(helper.pickle.__name__ != "cloudpickle", "Only test for cloudpickle")
+    def test_custom_function_without_import_and_path_forced_value(self):
+        helper.pickle.register_pickle_by_value(test_3_mod_1)
+        self.assertEqual(test_3_mod_1.customFunction(5,7), 35)
+        self.obj['f1'] = self.dumps(test_3_mod_1.customFunction)
+        helper.pickle.unregister_pickle_by_value(test_3_mod_1)
+
+    @unittest.skipIf(helper.pickle.__name__ != "cloudpickle", "Only test for cloudpickle")
+    def test_custom_class_without_import_and_path_forced_value(self):
+        helper.pickle.register_pickle_by_value(test_3_mod_1)
+        self.assertEqual(str(test_3_mod_1.CustomClass("world")), "hello world")
+        self.obj['c1'] = self.dumps(test_3_mod_1.CustomClass)
+        self.obj['o1'] = self.dumps(test_3_mod_1.CustomClass("world"))
+        helper.pickle.unregister_pickle_by_value(test_3_mod_1)
+
+    @unittest.skipIf(helper.pickle.__name__ != "cloudpickle", "Only test for cloudpickle")
+    def test_module_without_path_forced_value(self):
+        import test_3_mod_2
+        helper.pickle.register_pickle_by_value(test_3_mod_2)
+        self.obj['m1'] = self.dumps(test_3_mod_2)
+        self.assertIsInstance(test_3_mod_2, types.ModuleType)
+        o = test_3_mod_2.CustomClass(9)
+        self.assertEqual(str(o), "81")
+        o.add(2)
+        self.assertEqual(str(o), "83")
+        helper.pickle.unregister_pickle_by_value(test_3_mod_2)
 
 ########## End of Code ##########
 
