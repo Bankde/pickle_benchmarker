@@ -30,6 +30,7 @@ class Test(helper.PickleTest):
         x = tf.keras.layers.Dense(3, activation=tf.nn.relu, name="dense_layer")(inputs)
         outputs = tf.keras.layers.Dense(2, activation=tf.nn.softmax, name="softmax_layer")(x)
         model = tf.keras.Model(inputs=inputs, outputs=outputs, name="test_model")
+        model.compile(optimizer='adam', loss='binary_crossentropy')
         model.set_weights(self.mock_weight)
         self.obj["model"] = self.dumps(model)
 
