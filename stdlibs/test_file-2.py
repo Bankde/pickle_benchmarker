@@ -47,7 +47,7 @@ class Test(helper.PickleTest):
         with self.loads(self.obj['fr1']) as fr1:
             self.assertEqual(fr1.readline(), b"Test2Data 2nd line\n")
 
-    def test_IO_without_file(self):
+    def test_read_IO_without_file(self):
         with self.loads(self.obj['f']) as f:
             self.assertEqual(f.readline(), "Line 1\n")
             self.assertEqual(f.readline(), "Line 2\n")
@@ -56,6 +56,12 @@ class Test(helper.PickleTest):
     def test_dill_file_fmode_non_zero_ptr_IO_object(self):
         with self.loads(self.obj['fr1']) as fr1:
             self.assertEqual(fr1.readline(), "Test2Data 2nd line\n")
+
+    @unittest.skipIf(helper.pickle.__name__ != "dill", "Only test for dill")
+    def test_dill_read_IO_without_file(self):
+        with self.loads(self.obj['f']) as f:
+            self.assertEqual(f.readline(), "Line 1\n")
+            self.assertEqual(f.readline(), "Line 2\n")
 
 ########## End of Code ##########
 

@@ -24,8 +24,11 @@ import io
 file_read_name = os.path.join(sys.path[0], "./dependencies", "test_file_read.txt")
 file_write_name = os.path.join(sys.path[0], "./dependencies", "test_file_write.tmp")
 file_temp_name = os.path.join(sys.path[0], "./dependencies", "test_file_tmp.tmp")
+file_temp_name_2 = os.path.join(sys.path[0], "./dependencies", "test_file_tmp_2.tmp")
 open(file_write_name, "w+").close() # Reset the file
 with open(file_temp_name, "w+") as f: # Reset the file
+    f.write("Line 1\nLine 2\nLine 3\n")
+with open(file_temp_name_2, "w+") as f: # Reset the file
     f.write("Line 1\nLine 2\nLine 3\n")
 
 def getLastLine(file):
@@ -76,7 +79,7 @@ class Test(helper.PickleTest):
             self.obj['fr1'] = self.dumps(fr1)
             self.assertEqual(fr1.readline(), b"Test2Data 2nd line\n")
 
-    def test_IO_without_file(self):
+    def test_read_IO_without_file(self):
         with open(file_temp_name, "r", encoding="utf-8") as f:
             self.obj['f'] = self.dumps(f)
             self.assertEqual(f.readline(), "Line 1\n")
@@ -89,6 +92,14 @@ class Test(helper.PickleTest):
             _ = fr1.readline()
             self.obj['fr1'] = self.dumps(fr1, fmode=helper.pickle.FILE_FMODE)
             self.assertEqual(fr1.readline(), "Test2Data 2nd line\n")
+
+    @unittest.skipIf(helper.pickle.__name__ != "dill", "Only test for dill")
+    def test_dill_read_IO_without_file(self):
+        with open(file_temp_name_2, "r", encoding="utf-8") as f:
+            self.obj['f'] = self.dumps(f, fmode=helper.pickle.CONTENTS_FMODE)
+            self.assertEqual(f.readline(), "Line 1\n")
+            self.assertEqual(f.readline(), "Line 2\n")
+        os.remove(file_temp_name_2)
 
 ########## End of Code ##########
 
