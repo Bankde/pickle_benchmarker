@@ -1,15 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''
-###### Description ######
-# Enum
-- Enum class
-- Enum value with clas definition
-- Enum value without class definition
-###### End of Description ######
-'''
-
 import sys, os
 import unittest
 sys.path.insert(1, os.path.join(sys.path[0], '../utilities'))
