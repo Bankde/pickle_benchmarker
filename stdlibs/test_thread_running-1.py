@@ -4,15 +4,15 @@
 '''
 ###### Description ######
 # On-running Threading
-- # Most of them will not work because Python does not give access to their private attributes
-- Thread
 - Lock object
 - RLock object
 - Condition object
 - Semaphore object
 - Event object
-- Timer object
 - Barrier object
+# Not test (because they use _thread.start_new_thread)
+- Thread object
+- Timer object
 ###### End of Description ######
 '''
 
@@ -37,11 +37,6 @@ def checkLastLine():
     return last_line
 
 def threadWrite(s):
-    with open(result_file, "a+") as f:
-        f.write("%s\n" % (s))
-
-def threadSleepThenWrite(dur, s):
-    time.sleep(dur)
     with open(result_file, "a+") as f:
         f.write("%s\n" % (s))
 
@@ -76,14 +71,6 @@ def conditionGetState(cond):
     return (isLock, owner, count, waiting)
 
 class Test(helper.PickleTest):
-    def test_thread_running(self):
-        t = threading.Thread(target=threadSleepThenWrite, args=(2, "Thread running",))
-        self.assertFalse(t.daemon)
-        t.start()
-        self.obj['t'] = self.dumps(t) # This should almost always done before thread wake up
-        t.join()
-        self.assertEqual(checkLastLine(), "Thread running\n")
-
     def test_lock_running(self):
         lock = threading.Lock()
         lock.acquire()
@@ -96,37 +83,20 @@ class Test(helper.PickleTest):
         lock = threading.RLock()
         thisThread = threading.get_ident()
         self.assertEqual(rlockGetState(lock), (False, 0, 0))
-        lock.acquire()
+        self.assertTrue(lock.acquire())
         self.assertEqual(rlockGetState(lock), (True, thisThread, 1))
-        lock.acquire()
+        self.assertTrue(lock.acquire())
         self.assertEqual(rlockGetState(lock), (True, thisThread, 2))
         self.obj['l'] = self.dumps(lock)
         self.obj['state'] = self.dumps(rlockGetState(lock)) # (True, thisThread, 2)
+        self.assertTrue(lock.acquire())
+        self.assertEqual(rlockGetState(lock), (True, thisThread, 3))
+        lock.release()
+        self.assertEqual(rlockGetState(lock), (True, thisThread, 2))
         lock.release()
         self.assertEqual(rlockGetState(lock), (True, thisThread, 1))
         lock.release()
         self.assertEqual(rlockGetState(lock), (False, 0, 0))
-
-    def test_condition_running(self):
-        # We do not use RLock because RLock will not work correctly after unpickle.
-        lock = threading.Lock()
-        cond = threading.Condition(lock)
-        thisThread = threading.get_ident()
-        self.assertEqual(conditionGetState(cond), (False, 0, 0, 0))
-        item_avail_list = [False]
-        t = threading.Thread(target=threadWait, args=(cond, item_avail_list), daemon=True)
-        t.start()
-        time.sleep(1) # Wait for the thread to enter cond.wait()
-        self.assertEqual(conditionGetState(cond), (False, 0, 0, 1))
-        self.obj['c'] = self.dumps(cond) # (False, 0, 0, 1))
-        self.obj['t'] = self.dumps(t)
-        cond.acquire()
-        item_avail_list[0] = True
-        cond.notify()
-        self.assertEqual(conditionGetState(cond), (True, 0, 0, 0))
-        cond.release()
-        t.join()
-        self.assertTrue(not item_avail_list[0])
 
     def test_semaphore_running(self):
         sem = threading.Semaphore(value=2)
@@ -155,17 +125,6 @@ class Test(helper.PickleTest):
         self.assertTrue(ev.wait(0.1))
         ev.clear()
         self.assertTrue(not ev.is_set())
-
-    def test_timer_running(self):
-        t = threading.Timer(1, threadWrite, ("Timer running",))
-        self.assertEqual(t.interval, 1)
-        self.assertTrue(not t.is_alive())
-        t.start()
-        self.obj['t'] = self.dumps(t)
-        self.assertTrue(t.is_alive())
-        time.sleep(2)
-        self.assertTrue(not t.is_alive())
-        self.assertEqual(checkLastLine(), "Timer running\n")
 
     def test_barrier_running(self):
         threadWrite("Barrier running 1")

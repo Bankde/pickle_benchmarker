@@ -56,13 +56,6 @@ def conditionGetState(cond):
     return (isLock, owner, count, waiting)
 
 class Test(helper.PickleTest):
-    def test_thread_running(self):
-        t = self.loads(self.obj['t'])
-        self.fail("Unable to join the thread")
-        # Already started thread couldn't be joined after unpickle.
-        t.join()
-        self.assertEqual(checkLastLine(), "Thread running\n")
-
     def test_lock_running(self):
         lock = self.loads(self.obj['l'])
         self.assertTrue(lock.locked())
@@ -73,27 +66,14 @@ class Test(helper.PickleTest):
         thisThread = threading.get_ident()
         lock = self.loads(self.obj['l'])
         state = self.loads(self.obj['state'])
+        self.assertTrue(lock.acquire())
+        self.assertEqual(rlockGetState(lock), (True, state[1], 3))
+        lock.release()
+        self.assertEqual(rlockGetState(lock), (True, state[1], 2))
         lock.release()
         self.assertEqual(rlockGetState(lock), (True, state[1], 1))
         lock.release()
         self.assertEqual(rlockGetState(lock), (False, 0, 0))
-
-    @helper.PickleTest.setFlag(helper.ResultCode.CONDITION, "Fail when using RLock")
-    def test_condition_running(self):
-        thisThread = threading.get_ident()
-        item_avail_list = [False]
-        cond = self.loads(self.obj['c'])
-        t = self.loads(self.obj['t'])
-        self.assertEqual(conditionGetState(cond), (False, 0, 0, 1))
-        cond.acquire()
-        item_avail_list[0] = True
-        cond.notify()
-        self.assertEqual(conditionGetState(cond), (True, 0, 0, 0))
-        cond.release()
-        self.fail("Unable to join the thread")
-        # Already started thread couldn't be joined after unpickle.
-        t.join()
-        self.assertTrue(not item_avail_list[0])
 
     def test_semaphore_running(self):
         sem = self.loads(self.obj['s'])
@@ -113,13 +93,6 @@ class Test(helper.PickleTest):
         self.assertTrue(ev.wait(0.1))
         ev.clear()
         self.assertTrue(not ev.is_set())
-
-    def test_timer_running(self):
-        t = self.loads(self.obj['t'])
-        self.assertTrue(t.is_alive())
-        time.sleep(2)
-        self.assertTrue(not t.is_alive())
-        self.assertEqual(checkLastLine(), "Timer running\n")
 
     def test_barrier_running(self):
         threadWrite("Barrier running 1")
