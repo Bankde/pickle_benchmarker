@@ -7,6 +7,10 @@ import datetime
 import json
 import pandas as pd
 import argparse
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+pd.set_option('display.max_colwidth', None)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--data", default="result", help="select data to be summarized")
