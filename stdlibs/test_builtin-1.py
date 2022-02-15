@@ -195,10 +195,10 @@ class Test(helper.PickleTest):
         self.obj['m'] = self.dumps(m)
         self.assertEqual(m['a'], 13)
         self.assertEqual(m['b'], 29)
+        self.assertIsInstance(m, types.MappingProxyType)
         with self.memTest():
             d['a'] = 31
             self.assertEqual(m['a'], 31)
-            self.assertIsInstance(m, types.MappingProxyType)
 
 ########## End of Code ##########
 
