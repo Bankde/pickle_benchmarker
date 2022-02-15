@@ -80,6 +80,15 @@ class Test(helper.PickleTest):
         self.assertEqual(w.send(13), 59)
         self.obj['f1'] = self.dumps(function_yield_from)
 
+    def test_generator_frame_object(self):
+        g1 = function_generator(10)
+        self.assertEqual(next(g1), 10)
+        frame = g1.gi_frame
+        self.assertEqual(frame.f_lineno, 28)
+        self.assertEqual(frame.f_lasti, 8)
+        self.assertDictEqual(frame.f_locals, {'x':10, 'cur':10})
+        self.obj['f1'] = self.dumps(frame)
+
 ########## End of Code ##########
 
 if __name__ == "__main__":

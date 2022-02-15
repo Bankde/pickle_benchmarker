@@ -47,6 +47,12 @@ class Test(helper.PickleTest):
         self.assertEqual(w.send(3), 23)
         self.assertEqual(w.send(13), 59)
 
+    def test_generator_frame_object(self):
+        frame = self.loads(self.obj['f1'])
+        self.assertEqual(frame.f_lineno, 28)
+        self.assertEqual(frame.f_lasti, 8)
+        self.assertDictEqual(frame.f_locals, {'x':10, 'cur':10})
+
 ########## End of Code ##########
 
 if __name__ == "__main__":

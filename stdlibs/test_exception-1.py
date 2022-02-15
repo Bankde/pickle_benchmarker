@@ -7,7 +7,8 @@
 - Builtin exception
 - User-defined exception
 - Chained exception
-- Exception with traceback check
+- Exception with traceback
+- Traceback
 ###### End of Description ######
 '''
 
@@ -58,6 +59,15 @@ class Test(helper.PickleTest):
             self.assertEqual(exc.__traceback__.tb_lineno, 55)
             self.assertEqual(exc.__traceback__.tb_next.tb_lineno, 22)
             self.obj['exc'] = self.dumps(exc)
+
+    def test_traceback(self):
+        try:
+            funcError(RuntimeError("testErr"))
+        except Exception as exc:
+            traceback = exc.__traceback__
+            self.assertEqual(traceback.tb_lineno, 55)
+            self.assertEqual(traceback.tb_next.tb_lineno, 22)
+            self.obj['tc'] = self.dumps(traceback)
         
 ########## End of Code ##########
 

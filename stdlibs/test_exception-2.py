@@ -27,6 +27,11 @@ class Test(helper.PickleTest):
         self.assertEqual(repr(exc), "RuntimeError('testErr')")
         self.assertEqual(exc.__traceback__.tb_lineno, 55)
         self.assertEqual(exc.__traceback__.tb_next.tb_lineno, 22)
+
+    def test_traceback(self):
+        traceback = self.loads(self.obj['tc'])
+        self.assertEqual(traceback.tb_lineno, 55)
+        self.assertEqual(traceback.tb_next.tb_lineno, 22)
         
 ########## End of Code ##########
 
