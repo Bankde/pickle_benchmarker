@@ -139,6 +139,14 @@ class Test(helper.PickleTest):
             d['a'] = 31
             self.assertEqual(m['a'], 31)
 
+    def test_bundled_mappingproxy(self):
+        bundle = self.loads(self.obj['b'])
+        self.assertEqual(bundle['m']['a'], 13)
+        self.assertEqual(bundle['m']['b'], 29)
+        self.assertIsInstance(bundle['m'], types.MappingProxyType)
+        bundle['d']['a'] = 31
+        self.assertEqual(bundle['m']['a'], 31)
+
 ########## End of Code ##########
 
 if __name__ == "__main__":

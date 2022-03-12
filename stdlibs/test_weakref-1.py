@@ -50,6 +50,17 @@ class Test(helper.PickleTest):
             self.assertTrue(o is o2)
             self.assertEqual(weakref.getweakrefcount(o), 1)
 
+    def test_bundled_weakref(self):
+        o = set([1,2,3,4,5])
+        r = weakref.ref(o)
+        bundle = {'o': o, 'r': r}
+        self.obj['b'] = self.dumps(bundle)
+        o2 = bundle['r']()
+        self.assertEqual(o2, set([1,2,3,4,5]))
+        with self.memTest():
+            self.assertTrue(bundle['o'] is o2)
+            self.assertEqual(weakref.getweakrefcount(bundle['o']), 1)
+
     def test_weakref_proxy(self):
         o = set([1,2,3,4,5])
         p = weakref.proxy(o)
@@ -71,6 +82,16 @@ class Test(helper.PickleTest):
         with self.memTest():
             self.assertIsInstance(p, weakref.CallableProxyType)
             self.assertEqual(weakref.getweakrefcount(f), 1)
+
+    def test_bundled_weakref_proxy(self):
+        o = set([1,2,3,4,5])
+        p = weakref.proxy(o)
+        bundle = {'o': o, 'p': p}
+        self.obj['b'] = self.dumps(bundle)
+        self.assertEqual(str(bundle['p']), '{1, 2, 3, 4, 5}')
+        with self.memTest():
+            self.assertIsInstance(bundle['p'], weakref.ProxyType)
+            self.assertEqual(weakref.getweakrefcount(bundle['o']), 1)
         
 ########## End of Code ##########
 
