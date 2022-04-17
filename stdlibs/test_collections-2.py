@@ -43,6 +43,14 @@ class Test(helper.PickleTest):
             d1["a"] = 10
             self.assertEqual(m.maps, [{'a': 10, 'b': 2}, {'c': 3, 'd': 4}])
 
+    def test_bundled_chainmap(self):
+        bundle = self.loads(self.obj['b'])
+        self.assertIsInstance(bundle['m'], collections.ChainMap)
+        self.assertEqual(bundle['m'].maps, [{'a': 1, 'b': 2}, {'c': 3, 'd': 4}])
+        with self.memTest():
+            bundle['d1']['a'] = 10
+            self.assertEqual(bundle['m'].maps, [{'a': 10, 'b': 2}, {'c': 3, 'd': 4}])
+
     def test_counter(self):
         c = self.loads(self.obj['c'])
         self.assertIsInstance(c, collections.Counter)

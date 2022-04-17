@@ -144,8 +144,9 @@ class Test(helper.PickleTest):
         self.assertEqual(bundle['m']['a'], 13)
         self.assertEqual(bundle['m']['b'], 29)
         self.assertIsInstance(bundle['m'], types.MappingProxyType)
-        bundle['d']['a'] = 31
-        self.assertEqual(bundle['m']['a'], 31)
+        with self.memTest():
+            bundle['d']['a'] = 31
+            self.assertEqual(bundle['m']['a'], 31)
 
 ########## End of Code ##########
 

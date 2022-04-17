@@ -60,8 +60,20 @@ class Test(helper.PickleTest):
         self.assertIsInstance(m, collections.ChainMap)
         self.assertEqual(m.maps, [{'a': 1, 'b': 2}, {'c': 3, 'd': 4}])
         with self.memTest():
-            d1["a"] = 10
+            d1['a'] = 10
             self.assertEqual(m.maps, [{'a': 10, 'b': 2}, {'c': 3, 'd': 4}])
+
+    def test_bundled_chainmap(self):
+        d1 = {"a":1,"b":2}
+        d2 = {"c":3,"d":4}
+        m = collections.ChainMap(d1, d2)
+        bundle = {'d1': d1, 'd2': d2, 'm': m}
+        self.obj['b'] = self.dumps(bundle)
+        self.assertIsInstance(bundle['m'], collections.ChainMap)
+        self.assertEqual(bundle['m'].maps, [{'a': 1, 'b': 2}, {'c': 3, 'd': 4}])
+        with self.memTest():
+            bundle['d1']['a'] = 10
+            self.assertEqual(bundle['m'].maps, [{'a': 10, 'b': 2}, {'c': 3, 'd': 4}])
 
     def test_counter(self):
         c = collections.Counter('hello world')
